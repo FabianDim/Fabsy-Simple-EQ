@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="SUbpzq" name="Fabsy's Simple EQ" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              companyName="Fabsy Music" cppLanguageStandard="20">
   <MAINGROUP id="sKJziw" name="Fabsy's Simple EQ">
     <GROUP id="{EBAC2996-E43D-88E5-1FDA-94C0B31AA368}" name="Source">
       <FILE id="heRaIB" name="PluginProcessor.cpp" compile="1" resource="0"
