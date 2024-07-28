@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+#ownstuff
+**/Builds
+**/JuceLibraryCode
+**/.DS_Store
