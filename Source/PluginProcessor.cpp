@@ -100,7 +100,7 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
     spec.numChannels = 1;
     spec.sampleRate = sampleRate;
     leftChain.prepare(spec);
-    rightChain.prepare(spec)
+    rightChain.prepare(spec);
 }
 
 void FabsysSimpleEQAudioProcessor::releaseResources()
@@ -191,8 +191,8 @@ void FabsysSimpleEQAudioProcessor::setStateInformation (const void* data, int si
 juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
-    layout.add(std::make_unique <juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq", 
-        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f, 1.0f),20.f));
+    layout.add(std::make_unique <juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq", //adding to the layout the audio parameters individually with maximum and minimum values
+        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f, 1.0f),20.f)); //this is the frequency parameters 
 
     layout.add(std::make_unique <juce::AudioParameterFloat>("HighCut Freq", "HighCut Freq",
         juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f), 20000.0f));
@@ -200,7 +200,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor
     layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Freq", "Peak Freq",
         juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f), 750.0f));
     
-    layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Gain", "Peak Gain",
+    layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Gain", "Peak Gain",//this is the gain parameters.
         juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 0.0f));
     
     layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Quality", "Peak Quality",
@@ -208,8 +208,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor
 
     juce::StringArray stringArray;
 
-    for (int i = 0; i < 4; i++) {
-        juce::String str;
+    for (int i = 0; i < 4; i++) { //for each option out of 4 decibel options we are adding multiples of 12 to the string array as an option for the cuttoff of the eq.
+        juce::String str; 
         str << (12 + i * 12);
         str << "db/Oct";
         stringArray.add(str);
