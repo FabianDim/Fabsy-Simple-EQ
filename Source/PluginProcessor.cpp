@@ -224,8 +224,8 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
     settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
     settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain")->load();
     settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
-    settings.lowCutSlope = apvts.getRawParameterValue("Low Cut Slope")->load();
-    settings.highCutSlope = apvts.getRawParameterValue("High Cut Slope")->load();
+    settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope")->load();
+    settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope")->load();
 
 
     return settings;
@@ -235,13 +235,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
     layout.add(std::make_unique <juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq", //adding to the layout the audio parameters individually with maximum and minimum values
-        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f, 1.0f),20.f)); //this is the frequency parameters 
+        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f, 0.25f),20.f)); //this is the frequency parameters 
 
     layout.add(std::make_unique <juce::AudioParameterFloat>("HighCut Freq", "HighCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f), 20000.0f));
+        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 0.25f), 20000.0f));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Freq", "Peak Freq",
-        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 1.0f), 750.0f));
+        juce::NormalisableRange<float>(20.f, 20000.0f, 1.0f, 0.25f), 750.0f));
     
     layout.add(std::make_unique <juce::AudioParameterFloat>("Peak Gain", "Peak Gain",//this is the gain parameters.
         juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 0.0f));
