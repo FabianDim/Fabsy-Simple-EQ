@@ -101,6 +101,20 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
     spec.sampleRate = sampleRate;
     leftChain.prepare(spec);
     rightChain.prepare(spec);
+    /*applying peak filter settings (based on previously obtained chainSettings to both the left and right audio channels of an equalizer*/
+
+    auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
+
+    //This line creates filter coefficients 
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+
+
+    //Applying the filter coefficients to the left an right audio channels.
+    //get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
+    //.coefficients accesses the coefficients (paramters) of the peak filter in each chain
+    // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
+    *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+    *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
 }
 
 void FabsysSimpleEQAudioProcessor::releaseResources()
@@ -150,6 +164,19 @@ void FabsysSimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
+
+    //This line creates filter coefficients 
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+
+
+    //Applying the filter coefficients to the left an right audio channels.
+    //get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
+    //.coefficients accesses the coefficients (paramters) of the peak filter in each chain
+    // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
+    *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+    *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+
     juce::dsp::AudioBlock<float> block(buffer);
 
     auto leftBlock = block.getSingleChannelBlock(0);
@@ -186,6 +213,22 @@ void FabsysSimpleEQAudioProcessor::setStateInformation (const void* data, int si
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
+{
+    ChainSettings settings; //Retreives EQ setting (freq, gain etc) from audioProcessorvalue tree state and returns them encapsulated in a chainsettings object.
+
+    settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq")->load(); //returns the value in units we care about 
+    settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq")->load();
+    settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
+    settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain")->load();
+    settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
+    settings.lowCutSlope = apvts.getRawParameterValue("Low Cut Slope")->load();
+    settings.highCutSlope = apvts.getRawParameterValue("High Cut Slope")->load();
+
+
+    return settings;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor::createParameterLayout() {
@@ -228,3 +271,5 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new FabsysSimpleEQAudioProcessor();
 }
+
+
