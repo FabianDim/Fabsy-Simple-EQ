@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+//#include <include_juce_audio_devices.cpp>
 
 //==============================================================================
 FabsysSimpleEQAudioProcessor::FabsysSimpleEQAudioProcessor()
@@ -115,6 +116,20 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
     // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
     *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
     *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+
+
+    //creates a coefficient for every 2 order
+    //if our choice is at 0 we want to get back one coefficient object therefore we must supply an order of two.
+
+    /*This method returns an array of IIR::Coefficients, made to be used in cascaded IIRFilters,
+    providing a minimum phase high-pass filter without any ripple in the pass band and in the stop band.*/
+    auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, sampleRate, 2 * (chainSettings.lowCutSlope + 1));//order is third param
+    auto& leftLowCut = leftChain.get < ChainPositions::LowCut > ();
+
+    leftLowCut.setBypassed<0>(true);
+    leftLowCut.setBypassed<1>(true);
+    leftLowCut.setBypassed<2>(true);
+    leftLowCut.setBypassed<3>(true);
 }
 
 void FabsysSimpleEQAudioProcessor::releaseResources()
@@ -224,9 +239,8 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
     settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
     settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain")->load();
     settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
-    settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope")->load();
-    settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope")->load();
-
+    settings.lowCutSlope = static_cast<Slope>(apvts.getRawParameterValue("LowCut Slope")->load());
+    settings.highCutSlope = static_cast<Slope>(apvts.getRawParameterValue("HighCut Slope")->load());
 
     return settings;
 }
