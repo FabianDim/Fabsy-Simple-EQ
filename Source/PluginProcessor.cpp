@@ -106,16 +106,7 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
 
     auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
 
-    //This line creates filter coefficients 
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
-
-
-    //Applying the filter coefficients to the left an right audio channels.
-    //get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
-    //.coefficients accesses the coefficients (paramters) of the peak filter in each chain
-    // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
-    *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
-    *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+    updatePeakFilter(chainSettings);
 
 
     //creates a coefficient for every 2 order
@@ -181,16 +172,14 @@ void FabsysSimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
     auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
 
+    updatePeakFilter(chainSettings);
+
     //This line creates filter coefficients 
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.peakFreq, chainSettings.peakQuality, juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
 
-
-    //Applying the filter coefficients to the left an right audio channels.
-    //get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
-    //.coefficients accesses the coefficients (paramters) of the peak filter in each chain
-    // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
-    *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
-    *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
+    ////Applying the filter coefficients to the left an right audio channels.
+    ////get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
+    ////.coefficients accesses the coefficients (paramters) of the peak filter in each chain
+    //// *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
 
     juce::dsp::AudioBlock<float> block(buffer);
 
@@ -202,6 +191,8 @@ void FabsysSimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     
     leftChain.process(leftContext);
     rightChain.process(rightContext);
+
+
 }
 
 //==============================================================================
@@ -244,6 +235,27 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 
     return settings;
 }
+//update the peak filter with the chain settings.
+void FabsysSimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings)
+{
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate() , chainSettings.peakFreq, chainSettings.peakQuality,
+        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+
+
+    //Applying the filter coefficients to the left an right audio channels.
+    //get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
+    //.coefficients accesses the coefficients (paramters) of the peak filter in each chain
+    // *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
+
+    updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+    updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+}
+
+//we use this function to update the coeeficients to new coefficients 
+void FabsysSimpleEQAudioProcessor::updateCoefficients(Coefficients& old, const Coefficients& replacements)
+{
+    *old = *replacements;
+}
 
 juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
@@ -278,6 +290,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout FabsysSimpleEQAudioProcessor
 
     return layout;
 }
+
+
 
 //==============================================================================
 // This creates new instances of the plugin..
