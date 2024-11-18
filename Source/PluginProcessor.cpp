@@ -123,7 +123,7 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
 
     /*This method returns an array of IIR::Coefficients, made to be used in cascaded IIRFilters,
     providing a minimum phase high-pass filter without any ripple in the pass band and in the stop band.*/
-    auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, sampleRate, 2 * (chainSettings.lowCutSlope + 1));//order is third param
+    auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, sampleRate, 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
     auto& leftLowCut = leftChain.get < ChainPositions::LowCut > ();
 
     leftLowCut.setBypassed<0>(true);
