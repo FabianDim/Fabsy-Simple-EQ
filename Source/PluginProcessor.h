@@ -94,6 +94,10 @@ private:
 
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
+    template<typename ChainType, typename CoefficientType>
+    void updateCutFilter(ChainType& leftLowCut,
+        const CoefficientType& cutCoefficients, const ChainSettings& chainSettings);
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FabsysSimpleEQAudioProcessor)
 };
