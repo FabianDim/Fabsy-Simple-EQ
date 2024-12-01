@@ -117,9 +117,17 @@ void FabsysSimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samples
 
     /*This method returns an array of IIR::Coefficients, made to be used in cascaded IIRFilters,
     providing a minimum phase high-pass filter without any ripple in the pass band and in the stop band.*/
-        auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, sampleRate, 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
+    auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, sampleRate, 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
     auto& leftLowCut = leftChain.get < ChainPositions::LowCut > ();
-
+    
+	//High cut filter
+    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.highCutSlope) + 1));//order is third param
+    auto& leftHighCut = leftChain.get < ChainPositions::HighCut >();
+    auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
+    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
+    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+    //to here
+    
     //leftLowCut.setBypassed<0>(true);
     //leftLowCut.setBypassed<1>(true);
     //leftLowCut.setBypassed<2>(true);
@@ -258,6 +266,14 @@ void FabsysSimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
     auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
     auto& leftLowCut = leftChain.get < ChainPositions::LowCut >();
+
+    //High cut filter
+    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.highCutSlope) + 1));//order is third param
+    auto& leftHighCut = leftChain.get < ChainPositions::HighCut >();
+    auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
+    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
+    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+    //to here
 
     //leftLowCut.setBypassed<0>(true);
     //leftLowCut.setBypassed<1>(true);
