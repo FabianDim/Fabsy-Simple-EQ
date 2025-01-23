@@ -180,45 +180,45 @@ void FabsysSimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, buffer.getNumSamples());
 
-    auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
+        auto chainSettings = getChainSettings(apvts);//calls getChainSettings function retrieving the EQ settings from the AudioProcessorValueTreeState 
 
-    updatePeakFilter(chainSettings);
+        updatePeakFilter(chainSettings);
 
-    auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
-    auto& leftLowCut = leftChain.get < ChainPositions::LowCut >();
+        auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.lowCutSlope) + 1));//order is third param
+        auto& leftLowCut = leftChain.get < ChainPositions::LowCut >();
 
-    //High cut filter
-    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.highCutSlope) + 1));//order is third param
-    auto& leftHighCut = leftChain.get < ChainPositions::HighCut >();
-    auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
-    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
-    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
-    //to here
+        //High cut filter
+        auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, getSampleRate(), 2 * (static_cast<int>(chainSettings.highCutSlope) + 1));//order is third param
+        auto& leftHighCut = leftChain.get < ChainPositions::HighCut >();
+        auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
+        updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
+        updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+        //to here
 
-    updateCutFilter(leftLowCut, cutCoefficients, chainSettings);
-    auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
+        updateCutFilter(leftLowCut, cutCoefficients, chainSettings);
+        auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
 
-    updateCutFilter(rightLowCut, cutCoefficients, chainSettings);
+        updateCutFilter(rightLowCut, cutCoefficients, chainSettings);
 
-    //This line creates filter coefficients 
+        //This line creates filter coefficients 
 
-    ////Applying the filter coefficients to the left an right audio channels.
-    ////get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
-    ////.coefficients accesses the coefficients (paramters) of the peak filter in each chain
-    //// *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
+        ////Applying the filter coefficients to the left an right audio channels.
+        ////get<ChainPositions::Peak>() Retrieves the peak filter component from each processing chain.
+        ////.coefficients accesses the coefficients (paramters) of the peak filter in each chain
+        //// *peakCoefficients dereferences the perviously generated filter coefficitents and assigns them to the peak filters coefficients in both the left and rigt channesl
 
-    juce::dsp::AudioBlock<float> block(buffer);
+        juce::dsp::AudioBlock<float> block(buffer);
 
-    auto leftBlock = block.getSingleChannelBlock(0);
-    auto rightBlock = block.getSingleChannelBlock(1);
+        auto leftBlock = block.getSingleChannelBlock(0);
+        auto rightBlock = block.getSingleChannelBlock(1);
 
-    juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
-    juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
-    
-    leftChain.process(leftContext);
-    rightChain.process(rightContext);
+        juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+        juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+
+        leftChain.process(leftContext);
+        rightChain.process(rightContext);
 
 
 }
@@ -236,14 +236,14 @@ juce::AudioProcessorEditor* FabsysSimpleEQAudioProcessor::createEditor()
 }
 
 //==============================================================================
-void FabsysSimpleEQAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void FabsysSimpleEQAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void FabsysSimpleEQAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void FabsysSimpleEQAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -266,7 +266,7 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 //update the peak filter with the chain settings.
 void FabsysSimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings)
 {
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate() , chainSettings.peakFreq, chainSettings.peakQuality,
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.peakFreq, chainSettings.peakQuality,
         juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
 
 
@@ -277,6 +277,13 @@ void FabsysSimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSe
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+}
+
+template<int index, typename ChainType, typename CoefficientType>
+void update(ChainType& chain, const CoefficientType& cutCoefficients){
+    //write some code to eliminate all that "cut filter code below" 
+
+
 }
 
 template<typename ChainType, typename CoefficientType>
