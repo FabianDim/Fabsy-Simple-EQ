@@ -12,7 +12,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 //#include <include_juce_audio_devices.cpp>
-
+using namespace std;
 //==============================================================================
 FabsysSimpleEQAudioProcessor::FabsysSimpleEQAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -280,10 +280,9 @@ void FabsysSimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSe
 }
 
 template<int index, typename ChainType, typename CoefficientType>
-void update(ChainType& chain, const CoefficientType& cutCoefficients){
-    //write some code to eliminate all that "cut filter code below" 
-
-
+void FabsysSimpleEQAudioProcessor::update(ChainType& chain, const CoefficientType& coefficients) {
+    updateCoefficients(chain.template get<index>().coefficients, coefficients[index]);
+    chain.template setBypassed<index>(false);
 }
 
 template<typename ChainType, typename CoefficientType>
@@ -298,37 +297,34 @@ inline void FabsysSimpleEQAudioProcessor::updateCutFilter(ChainType& cutFilter, 
     cutFilter.setBypassed<2>(true);
     cutFilter.setBypassed<3>(true);
 
-    switch (chainSettings.lowCutSlope) { //applying the correct coeficients on the lowCutSlope to the chain settings
-        case Slope::Slope_12: {
-            *cutFilter.get<0>().coefficients = *cutCoefficients[0];
-            cutFilter.setBypassed<0>(false);
-            break;
-        }
-        case Slope::Slope_24: {
-            *cutFilter.get<0>().coefficients = *cutCoefficients[0];
-            cutFilter.setBypassed<0>(false);
-            *cutFilter.get<1>().coefficients = *cutCoefficients[1];
-            cutFilter.setBypassed<1>(false);
-            break;
+    switch (chainSettings.lowCutSlope) { //applying the correct coefficients on the lowCutSlope to the chain settings
+        case Slope::Slope_48: {
+            update<3>(cutFilter, cutCoefficients);
         }
         case Slope::Slope_36: {
-            *cutFilter.get<0>().coefficients = *cutCoefficients[0];
-            cutFilter.setBypassed<0>(false);
-            *cutFilter.get<1>().coefficients = *cutCoefficients[1];
-            cutFilter.setBypassed<1>(false);
-            *cutFilter.get<2>().coefficients = *cutCoefficients[2];
-            cutFilter.setBypassed<2>(false);
+            update<2>(cutFilter, cutCoefficients);
+        }
+        case Slope::Slope_24: {
+            update<1>(cutFilter, cutCoefficients);
+        }
+        case Slope::Slope_12: {
+            update<0>(cutFilter, cutCoefficients);
             break;
         }
+    }
+
+    switch (chainSettings.highCutSlope) {
         case Slope::Slope_48: {
-            *cutFilter.get<0>().coefficients = *cutCoefficients[0];
-            cutFilter.setBypassed<0>(false);
-            *cutFilter.get<1>().coefficients = *cutCoefficients[1];
-            cutFilter.setBypassed<1>(false);
-            *cutFilter.get<2>().coefficients = *cutCoefficients[2];
-            cutFilter.setBypassed<2>(false);
-            *cutFilter.get<3>().coefficients = *cutCoefficients[3];
-            cutFilter.setBypassed<3>(false);
+            update<3>(cutFilter, cutCoefficients);
+        }
+        case Slope::Slope_36: {
+            update<2>(cutFilter, cutCoefficients);
+        }
+        case Slope::Slope_24: {
+            update<1>(cutFilter, cutCoefficients);
+        }
+        case Slope::Slope_12: {
+            update<0>(cutFilter, cutCoefficients);
             break;
         }
     }
@@ -337,6 +333,14 @@ inline void FabsysSimpleEQAudioProcessor::updateCutFilter(ChainType& cutFilter, 
 //we use this function to update the coeeficients to new coefficients 
 void FabsysSimpleEQAudioProcessor::updateCoefficients(Coefficients& old, const Coefficients& replacements)
 {
+    if (old == nullptr) {
+        cerr << "ERROR: Old is a nullptr" << endl;
+        return;
+    }
+    else if (replacements == nullptr) {
+        cerr << "ERROR: replacements is a nullptr" << endl;
+        return;
+    }
     *old = *replacements;
 }
 

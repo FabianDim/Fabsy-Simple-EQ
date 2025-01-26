@@ -95,6 +95,9 @@ private:
 
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
+    template<int index, typename ChainType, typename CoefficientType>
+    void update(ChainType& chain, const CoefficientType& cutCoefficients);
+
     template<typename ChainType, typename CoefficientType>
     void updateCutFilter(ChainType& leftLowCut,
         const CoefficientType& cutCoefficients, const ChainSettings& chainSettings);
